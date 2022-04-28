@@ -11,4 +11,6 @@ public interface IngredientRepository extends CrudRepository<Ingredient, Long> {
 
 	Optional<Ingredient> findIngredientByRecipeIdAndId(Long recipeId, Long id);
 
+	void deleteIngredientByRecipeIdAndId(Long recipeId, Long id);
+
 }
