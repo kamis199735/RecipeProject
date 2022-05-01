@@ -3,14 +3,18 @@ package kamis199735.springframework.recipeproject.controllers;
 import kamis199735.springframework.recipeproject.commands.RecipeCommand;
 import kamis199735.springframework.recipeproject.services.ImageService;
 import kamis199735.springframework.recipeproject.services.RecipeService;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -20,7 +24,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
-class ImageControllerTest {
+public class ImageControllerTest {
 
 	@Mock
 	ImageService imageService;
@@ -33,8 +37,8 @@ class ImageControllerTest {
 
 	ImageController controller;
 
-	@BeforeEach
-	void setUp() {
+	@Before
+	public void setUp() {
 		MockitoAnnotations.openMocks(this);
 
 		controller = new ImageController(imageService, recipeService);
@@ -42,7 +46,7 @@ class ImageControllerTest {
 	}
 
 	@Test
-	 void getImageForm() throws Exception {
+	public void getImageForm() throws Exception {
 		//given
 		RecipeCommand command = new RecipeCommand();
 		command.setId(1L);
@@ -58,7 +62,7 @@ class ImageControllerTest {
 	}
 
 	@Test
-	void handleImagePost() throws Exception {
+	public void handleImagePost() throws Exception {
 		MockMultipartFile multipartFile = new MockMultipartFile("imagefile", "testing.txt", "text/plain", "Spring Framework".getBytes());
 
 		mockMvc.perform(multipart("/recipe/1/image").file(multipartFile))
@@ -66,5 +70,36 @@ class ImageControllerTest {
 				.andExpect(header().string("Location","/recipe/1/show"));
 
 		verify(imageService, times(1)).saveImageFile(anyLong(), any());
+	}
+
+	@Test
+	public void renderImageFromDB() throws Exception {
+		//given
+		RecipeCommand recipeCommand = new RecipeCommand();
+		recipeCommand.setId(1L);
+
+		String s = "fake image text";
+		Byte[] bytesBoxed = new Byte[s.getBytes().length];
+
+		int i = 0;
+
+		for (byte primByte : s.getBytes()){
+			bytesBoxed[i++] = primByte;
+		}
+
+		recipeCommand.setImage(bytesBoxed);
+
+		when(recipeService.findCommandById(anyLong())).thenReturn(recipeCommand);
+
+		//when
+		MockHttpServletResponse response = mockMvc.perform(get("/recipe/1/recipeimage"))
+				.andExpect(status().isOk())
+				.andReturn().getResponse();
+
+		byte[] responseBytes = response.getContentAsByteArray();
+
+		assertEquals(s.getBytes().length, responseBytes.length);
+
+
 	}
 }
