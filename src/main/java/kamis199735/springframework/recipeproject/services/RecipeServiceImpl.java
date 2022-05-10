@@ -4,6 +4,7 @@ import kamis199735.springframework.recipeproject.commands.RecipeCommand;
 import kamis199735.springframework.recipeproject.converters.RecipeCommandToRecipe;
 import kamis199735.springframework.recipeproject.converters.RecipeToRecipeCommand;
 import kamis199735.springframework.recipeproject.domain.Recipe;
+import kamis199735.springframework.recipeproject.exceptions.NotFoundException;
 import kamis199735.springframework.recipeproject.repositories.RecipeRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,7 +39,8 @@ public class RecipeServiceImpl implements RecipeService{
 	public Recipe findById(Long id) {
 		Optional<Recipe> recipeOptional = recipeRepository.findById(id);
 		if(!recipeOptional.isPresent()){
-			throw new RuntimeException("Recipe not found");
+			//throw new RuntimeException("Recipe not found");
+			throw new NotFoundException("Recipe not found. For Id value: " + id.toString());
 		}
 		return recipeOptional.orElse(null);
 	}

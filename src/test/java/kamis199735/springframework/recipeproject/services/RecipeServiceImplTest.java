@@ -3,9 +3,14 @@ package kamis199735.springframework.recipeproject.services;
 import kamis199735.springframework.recipeproject.converters.RecipeCommandToRecipe;
 import kamis199735.springframework.recipeproject.converters.RecipeToRecipeCommand;
 import kamis199735.springframework.recipeproject.domain.Recipe;
+import kamis199735.springframework.recipeproject.exceptions.NotFoundException;
 import kamis199735.springframework.recipeproject.repositories.RecipeRepository;
+import org.hamcrest.Matcher;
+import org.junit.Rule;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.rules.ExpectedException;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -28,6 +33,9 @@ class RecipeServiceImplTest {
 
 	@Mock
 	RecipeToRecipeCommand recipeToRecipeCommand;
+
+	@Rule
+	ExpectedException expectedException = ExpectedException.none();
 
 	@BeforeEach
 	void setUp() throws Exception{
@@ -62,6 +70,28 @@ class RecipeServiceImplTest {
 		assertNotNull(recipeReturned);
 		Mockito.verify(recipeRepository, Mockito.times((1))).findById(Mockito.anyLong());
 		Mockito.verify(recipeRepository, Mockito.never()).findAll() ;
+	}
+
+	@Test
+	void getRecipeByIdTestNotFound() throws Exception {
+
+
+
+
+
+		Optional<Recipe> recipeOptional = Optional.empty();
+
+		Mockito.when(recipeRepository.findById(Mockito.anyLong())).thenReturn(recipeOptional);
+
+		NotFoundException exception = assertThrows(NotFoundException.class, () -> {
+			recipeService.findById(1L);
+		});
+
+
+		Assertions.assertEquals("Recipe not found", exception.getMessage());
+
+
+
 	}
 
 	@Test
