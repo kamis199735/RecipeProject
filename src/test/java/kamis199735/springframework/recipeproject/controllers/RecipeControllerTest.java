@@ -34,7 +34,9 @@ public class RecipeControllerTest {
 	void setUp() throws Exception{
 		MockitoAnnotations.openMocks(this);
 		controller=new RecipeController(recipeService);
-		mockMvc= MockMvcBuilders.standaloneSetup(controller).build();
+		mockMvc = MockMvcBuilders.standaloneSetup(controller)
+				.setControllerAdvice(new ControllerExceptionHandler())
+				.build();
 	}
 
 	@Test
@@ -66,25 +68,35 @@ public class RecipeControllerTest {
 
 	@Test
 	void testGetRecipeNotFound() throws Exception {
-		Recipe recipe = new Recipe();
-		recipe.setId(1L);
+
 
 		when(recipeService.findById(anyLong())).thenThrow(NotFoundException.class);
 
 		mockMvc.perform(get("/recipe/1/show"))
-				.andExpect(status().isNotFound());
+				.andExpect(status().isNotFound())
+				.andExpect(view().name("404error"));
+	}
+	@Test
+	void testGetRecipeNumberFormatException() throws Exception {
+
+
+
+		mockMvc.perform(get("/recipe/asdf/show"))
+				.andExpect(status().isBadRequest())
+				.andExpect(view().name("400error"));
 	}
 
 	@Test
 	void testPostNewRecipeForm() throws Exception{
 		RecipeCommand command = new RecipeCommand();
 		command.setId(2L);
-		Mockito.when(recipeService.saveRecipeCommand(Mockito.any())).thenReturn(command);
+		when(recipeService.saveRecipeCommand(Mockito.any())).thenReturn(command);
 
 		mockMvc.perform(post("/recipe")
 				.contentType(MediaType.APPLICATION_FORM_URLENCODED)
 				.param("id","")
-				.param("description", "some stromg"))
+				.param("description", "some stromg")
+				.param("directions", "asfasf"))
 				.andExpect(status().is3xxRedirection())
 				.andExpect(view().name("redirect:/recipe/2/show"));
 	}
